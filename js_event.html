@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>js类练习</title>
+	<style>
+		#btn{
+			width:80px;
+			line-height: 30px;
+			height: 30px;
+			text-align:center;
+			border:1px solid #ccc;
+			border-radius: 3px;
+			cursor:pointer;
+		}
+	</style>
+
+</head>
+<body>
+	
+	<div id="btn-wrap">
+		<div id="btn">我是按钮</div>
+		<a id='btn-a' href="http://www.baidu.com">我是一个连接，原生绑定事件</a>
+		<br/>
+		<br/>
+		<a id='btn-a-jq' href="http://www.baidu.com">我是一个连接，使用jQuery绑定事件</a>
+	</div>
+	<br/>
+	
+
+	<script src="jquery-1.10.2.min.js"></script>
+	<script type="text/javascript">
+		var button = document.getElementById('btn');
+		var listener = function(e){
+			// console.log(arguments);
+			// console.log(e);
+			console.log('btn');
+			console.log(e.bubbles, e.button);
+			//阻止冒泡
+			// e.stopPropagation();
+			//阻止默认行为
+			// e.preventDefault();
+			//返回false也能阻止默认行为，我测试了，不能。
+			return false;
+
+		};
+		/*第三个参数是useCapture，默认false(应该是undefined吧？)
+		true：事件处理程序以捕捉模式触发（从外到内传播，即：先触发父级事件，再触发子级事件）；
+		false：事件处理程序以冒泡模式触发（从内向外传播，即：先触发子级事件，再触发父级事件）。
+		*/
+		button.addEventListener('click', listener, false); 
+		//匿名函数事件无法移除
+		// button.removeEventListener('click', listener, false);
+
+		var buttionWrap = document.getElementById('btn-wrap');
+		buttionWrap.addEventListener('click',function(e){
+			console.log('btn-wrap');
+			console.log(e.bubbles);
+		}, false)
+
+		var btnA = document.getElementById('btn-a');
+		btnA.addEventListener('click',function(e){
+			alert('原生方式绑定事件。');
+			//阻止冒泡
+			e.stopPropagation();
+			//阻止默认行为
+			e.preventDefault();
+			//返回false 并不能阻止默认行为和冒泡，jQuery的写法可以吧？
+			return false;
+		},false);
+		$('#btn-a-jq').click(function(e){
+			alert('jQuery方式绑定事件');
+			//冒泡，默认行为都被阻止了。
+			return false;
+
+		});
+
+	</script>
+</body>
+</html>

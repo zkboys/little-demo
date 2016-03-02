@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>js类练习</title>
+	<style>
+		#btn{
+			width:80px;
+			line-height: 30px;
+			height: 30px;
+			text-align:center;
+			border:1px solid #ccc;
+			border-radius: 3px;
+			cursor:pointer;
+		}
+	</style>
+
+</head>
+<body>
+	<div id="btn">我是按钮</div>
+	<script src="jquery-1.10.2.min.js"></script>
+	<script type="text/javascript">
+		var Class = function(parent){
+			var klass = function(){
+				this.init.apply(this, arguments);
+			}
+
+			//改变klass的原型
+			if(parent){
+				var subclass = function(){};
+				subclass.prototype = parent.prototype;
+				klass.prototype = new subclass;
+			}
+
+			klass.prototype.init = function(){};
+
+			//定义 prototype的别名
+			klass.fn = klass.prototype;
+
+			//定义类的别名
+			klass.fn.parent = klass;
+			klass._super = klass.__proto__;
+			//添加一个proxy函数
+			klass.proxy = function(func){
+				var self = this;
+				return(function(){
+					return func.apply(self, arguments);
+				});
+			}
+			// 在实例中也添加这个函数
+			klass.fn.proxy = klass.proxy;
+
+			//给类添加属性，直接添加到klass上，只有类有这个属性(静态属性、方法)，实例无法调用。
+			klass.extend = function(obj){
+				var extended = obj.extended;// 回调函数，extend之后触发
+				for(var i in obj){
+					klass[i] = obj[i];
+				}
+				if (extended) extended(klass);
+			};
+			//给实例添加属性,添加到klass原型上,每一个实例都会有这些属性
+			klass.include = function(obj){
+				var included = obj.included;// 回调函数 include之后触发
+				for(var i in obj){
+					//这样赋值有个问题，如果是引用类型（array， object），各个实例之间会共享同一个属性。所以，这个方法只用来添加方法，不要用来添加属性，属性通过this添加，应该是在init函数中完成。
+					klass.fn[i] = obj[i];
+				}
+				if(included) included(klass);
+			}
+			return klass;
+		}
+		// bind 实现，老版本浏览器可能不支持bind函数
+		if(!Function.prototype.bind){
+			Function.prototype.bind = function(obj){
+				var slice = [].slice,
+					//bind 函数是可以传参数的。比如：this.click.bind(this,1,2,3)
+					args = slice.call(arguments, 1),
+					self = this,
+					nop = function(){},
+					bound = function(){
+						return self.apply(this instanceof nop ? this:(obj||{}), 
+							args.concat(slice.call(arguments)));
+					};
+				nop.prototype = self.prototype;
+				bound.prototype = new nop();
+				return bound;					
+			};
+		}
+
+		//这是一个公用的模块（全部是方法？），相当于父类
+		var ORMModule = {
+			update: function(){
+				console.log('Update method from ORMModule');
+			}
+		}
+
+		var Person = new Class();
+		//这样可以继承父类的方法，属性，相当于继承。
+		Person.include(ORMModule);
+		
+		Person.extend({
+			find: function(id){
+				console.log('Class property find:'+id);
+			},
+			exists: function(id){
+				console.log('Class property exists'+id);
+			},
+			extended: function(klass){
+				console.log(klass, " was extended");
+			}
+		});
+		Person.include({
+			save: function(id){
+				console.log('Instance property save:'+id);
+			},
+			destroy: function(id){
+				console.log('Instance property destroy:'+id);
+			},
+			included: function(klass){
+				console.log(klass, " was included");
+			}
+		});
+		var person = Person.find(1);
+
+		var p = new Person({
+			name:'张三啊',
+			age:25
+		});
+		// p.find(22);//p.find is not a function p.find is undefined
+		p.save(11);
+		p.destroy(11);
+		p.update();
+		console.log(p.name);
+		 
+		var p2 = new Person(); 
+		console.log(p2.name);
+
+		var Button = new Class;
+		Button.include({
+			init: function(element){
+				this.element = jQuery(element);
+				// 代理了这个click函数
+				// this.element.click(this.proxy(this.click));
+				//绑定这个click函数
+				this.element.click(this.click.bind(this));
+			},
+			click: function(){
+				console.log(arguments);
+				console.log(jQuery(this.element).html());
+			}
+		});
+
+		var btn = new Button();
+		btn.init(document.getElementById('btn'));
+
+	</script>
+</body>
+</html>

@@ -105,9 +105,9 @@
 			});
 			element.on('change.tabs', function(e, tabName){
 				// 注意：tabs 和 tabs-content 要是兄弟节点
-				var content = $(this).parent().find(content);
-				content.find('>[data-tab]').removeClass('active');
-				content.find('>[data-tab="'+tabName+'"]').addClass('active')
+				var $content = $(this).parent().find(content);
+				$content.find('>[data-tab]').removeClass('active');
+				$content.find('>[data-tab="'+tabName+'"]').addClass('active')
 			});
 
 			var firstName = element.find('li:first').attr('data-tab');
